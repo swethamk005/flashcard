@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&family=Roboto:wght@500&display=swap" rel="stylesheet">
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flashcard App</title>
+  <h3>Edit and create your own flashcards!!</h3>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: "Poppins", sans-serif;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background: linear-gradient(135deg, #005aa7, #fffde4);
+    }
+
+    h1 {
+      color: #fff;
+      margin-bottom: 20px;
+      letter-spacing: 1px;
+    }
+
+    .card {
+      width: 320px;
+      height: 200px;
+      perspective: 1000px;
+      margin-bottom: 20px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .inner-card {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
+    }
+
+    .card.flip .inner-card {
+      transform: rotateY(180deg);
+    }
+
+    .front,
+    .back {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      backface-visibility: hidden;
+      background: #fff;
+      color: #333;
+      border-radius: 12px;
+      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      text-align: center;
+      font-size: 17px;
+    }
+
+    .back {
+      transform: rotateY(180deg);
+      background: #f8f8f8;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+      font-size: 15px;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    #delete {
+      background: #dc3545;
+    }
+
+    #delete:hover {
+      background: #b02a37;
+    }
+
+    .add-section {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 300px;
+      gap: 10px;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .counter {
+      color: #fff;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>📚 Flashcard App</h1>
+  <div class="counter" id="counter"></div>
+
+  <div class="card" id="flashcard">
+    <div class="inner-card">
+      <div class="front" id="question">Question</div>
+      <div class="back" id="answer">Answer</div>
+    </div>
+  </div>
+
+  <div class="buttons">
+    <button id="prev">⬅ Prev</button>
+    <button id="next">Next ➡</button>
+    <button id="delete">🗑 Delete</button>
+  </div>
+
+  <div class="add-section">
+    <h3>Add a New Flashcard</h3>
+    <input type="text" id="newQuestion" placeholder="Enter question" />
+    <textarea id="newAnswer" placeholder="Enter answer"></textarea>
+    <button id="addCard">➕ Add Flashcard</button>
+  </div>
+
+  <script>
+    // Load flashcards or use defaults
+    let flashcards =
+      JSON.parse(localStorage.getItem("flashcards")) || [
+        { question: "What is Python?", answer: "A high-level programming language." },
+        { question: "What does HTML stand for?", answer: "HyperText Markup Language." },
+        { question: "What is CSS used for?", answer: "To style web pages." },
+        { question: "What is JavaScript?", answer: "A scripting language for interactivity." },
+        { question: "What is an algorithm?", answer: "A step-by-step process to solve a problem." },
+      ];
+
+    const card = document.getElementById("flashcard");
+    const question = document.getElementById("question");
+    const answer = document.getElementById("answer");
+    const counter = document.getElementById("counter");
+    let index = 0;
+
+    function updateCounter() {
+      counter.textContent = `Card ${index + 1} of ${flashcards.length}`;
+    }
+
+    function showCard(i) {
+      if (flashcards.length === 0) {
+        question.textContent = "No flashcards yet!";
+        answer.textContent = "Add one below 👇";
+        counter.textContent = "";
+        return;
+      }
+      question.textContent = flashcards[i].question;
+      answer.textContent = flashcards[i].answer;
+      card.classList.remove("flip");
+      updateCounter();
+    }
+
+    showCard(index);
+
+    // Flip card
+    card.addEventListener("click", () => {
+      if (flashcards.length > 0) card.classList.toggle("flip");
+    });
+
+    // Navigation
+    document.getElementById("next").addEventListener("click", () => {
+      if (flashcards.length > 0) {
+        index = (index + 1) % flashcards.length;
+        showCard(index);
+      }
+    });
+
+    document.getElementById("prev").addEventListener("click", () => {
+      if (flashcards.length > 0) {
+        index = (index - 1 + flashcards.length) % flashcards.length;
+        showCard(index);
+      }
+    });
+
+    // Add flashcard
+    document.getElementById("addCard").addEventListener("click", () => {
+      const newQ = document.getElementById("newQuestion").value.trim();
+      const newA = document.getElementById("newAnswer").value.trim();
+
+      if (newQ && newA) {
+        flashcards.push({ question: newQ, answer: newA });
+        localStorage.setItem("flashcards", JSON.stringify(flashcards));
+        document.getElementById("newQuestion").value = "";
+        document.getElementById("newAnswer").value = "";
+        index = flashcards.length - 1;
+        showCard(index);
+        alert("✅ Flashcard added successfully!");
+      } else {
+        alert("⚠️ Please enter both a question and an answer!");
+      }
+    });
+
+    // Delete flashcard
+    document.getElementById("delete").addEventListener("click", () => {
+      if (flashcards.length === 0) {
+        alert("⚠️ No flashcards to delete!");
+        return;
+      }
+      if (confirm("🗑 Are you sure you want to delete this flashcard?")) {
+        flashcards.splice(index, 1);
+        if (index >= flashcards.length) index = flashcards.length - 1;
+        localStorage.setItem("flashcards", JSON.stringify(flashcards));
+        showCard(index);
+      }
+    });
+  </script>
+</body>
+</html>
